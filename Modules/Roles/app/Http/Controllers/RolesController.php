@@ -4,6 +4,8 @@ namespace Modules\Roles\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+use Spatie\Permission\Models\Role;
 
 class RolesController extends Controller
 {
@@ -12,7 +14,10 @@ class RolesController extends Controller
      */
     public function index()
     {
-        return view('roles::index');
+        $roles = Role::query()->paginate(4);
+        return view('roles::index', [
+            'roles' => $roles
+        ]);
     }
 
     /**
@@ -26,7 +31,15 @@ class RolesController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request) {}
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|min:2|max:255|unique:roles,name',
+        ]);
+        $role = Role::create($validated);
+
+        return redirect()->route('roles.index')->with('success', 'Role created successfully');
+    }
 
     /**
      * Show the specified resource.
@@ -41,16 +54,41 @@ class RolesController extends Controller
      */
     public function edit($id)
     {
-        return view('roles::edit');
+        $role = Role::find($id);
+        return view('roles::edit', [
+            'role' => $role
+        ]);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, $id) {}
+    public function update(Request $request, $id)
+    {
+        $role = Role::findOrFail($id);
+        $validated = $request->validate([
+            'name' => [
+                'required',
+                'string',
+                Rule::unique('roles')->ignore($id),
+            ]
+        ]);
+
+
+        $role->update($validated);
+
+        return redirect()->route('roles.index')
+            ->with('success', "Role {$role->name} updated successfully!");
+    }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy($id) {}
+    public function destroy($id)
+    {
+        $role = Role::findOrFail($id);
+        $role->delete();
+        return redirect()->route('roles.index')
+            ->with('success', "Role {$role->name} deleted successfully!");
+    }
 }

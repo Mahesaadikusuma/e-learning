@@ -12,18 +12,10 @@
             <table class="w-full text-sm text-left rtl:text-right text-body">
                 <thead class="text-sm text-body bg-neutral-secondary-soft border-b rounded-base border-default">
                     <tr>
-                        <th scope="col" class="px-6 py-3 font-medium">
-                            No.
-                        </th>
-                        <th scope="col" class="px-6 py-3 font-medium">
-                            Name
-                        </th>
-                        <th scope="col" class="px-6 py-3 font-medium">
-                            Module
-                        </th>
-                        <th scope="col" class="px-6 py-3 font-medium">
-                            Action
-                        </th>
+                        <th scope="col" class="px-6 py-3 font-medium">No.</th>
+                        <th scope="col" class="px-6 py-3 font-medium">Name</th>
+                        <th scope="col" class="px-6 py-3 font-medium">Module</th>
+                        <th scope="col" class="px-6 py-3 font-medium">Action</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -38,32 +30,31 @@
                             <td class="px-6 py-4">
                                 {{ $permission->module }}
                             </td>
-
                             <td class="px-6 py-4">
                                 <div class="flex items-center gap-2">
                                     <a href="{{ route('permission.edit', $permission->id) }}" class="text-blue-600">
                                         Edit
                                     </a>
-                                    <form action="{{ route('permission.destroy', $permission->id) }}" method="POST" class="text-red-600">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit"
-                                        class="text-white bg-danger box-border border border-transparent hover:bg-danger-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none w-full mb-3">
-                                        Delete
-                                    </button>
-                                    </form>
+                                    <x-modal-delete 
+                                        :id="$permission->id"
+                                        message="Are you sure delete permission"
+                                        :item-name="$permission->name"
+                                        :route="route('permission.destroy', $permission->id)"
+                                    />
                                 </div>
                             </td>
-                        </tr>
+                        </tr>        
                     @empty
-                        <td colspan="5" class="px-6 py-4 text-center">
-                            No Data
-                        </td>
+                        <tr>
+                            <td colspan="4" class="px-6 py-4 text-center">
+                                No Data
+                            </td>
+                        </tr>
                     @endforelse
                 </tbody>
             </table>
-
         </div>
+        
         <div class="">
             {{ $permissions->links() }}
         </div>

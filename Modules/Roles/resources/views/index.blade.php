@@ -39,13 +39,12 @@
                                     <a href="{{ route('roles.edit', $role->id) }}" class="text-blue-600">
                                         Edit
                                     </a>
-                                    <form action="{{ route('roles.destroy', $role->id) }}" method="POST" class="text-red-600">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit"
-                                        class="text-white bg-danger box-border border border-transparent hover:bg-danger-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none w-full mb-3">
-                                        Delete
-                                    </button>
+                                    <x-modal-delete 
+                                        :id="$role->id"
+                                        message="Are you sure delete role"
+                                        :item-name="$role->name"
+                                        :route="route('roles.destroy', $role->id)"
+                                    />
                                     </form>
                                 </div>
                             </td>

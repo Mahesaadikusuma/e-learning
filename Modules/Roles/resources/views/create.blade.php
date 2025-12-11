@@ -11,7 +11,7 @@
             <h5 class="text-xl font-semibold text-heading mb-6">Create Role User</h5>
             <div class="mb-4">
                 <label for="name" class="block mb-2.5 text-sm font-medium text-heading">Name Roles</label>
-                <input type="name" id="name" name="name"
+                <input type="name" id="name" name="name" value="{{ old('name') }}"
                     class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body"
                     placeholder="Admin" required />
             </div>

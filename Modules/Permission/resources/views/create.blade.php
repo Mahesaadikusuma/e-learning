@@ -11,22 +11,22 @@
             <h5 class="text-xl font-semibold text-heading mb-6">Create Permission User</h5>
             <div class="mb-4">
                 <label for="name" class="block mb-2.5 text-sm font-medium text-heading">Name Permission</label>
-                <input type="name" id="name" name="name"
+                <input type="name" id="name" name="name" value="{{ old('name') }}"
                     class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body"
-                    placeholder="" required />
+                    placeholder=""  />
             </div>
             <div class="mb-4">
                 <label for="module" class="block mb-2.5 text-sm font-medium text-heading">Name Permission</label>
                 <select id="module" name="module" class="block w-full px-3 py-2.5 bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs placeholder:text-body">
                     <option value="" selected>Select an option Module Permission</option>
                     @foreach (\Modules\Permission\Enums\ModuleStatus::cases() as $status)
-                        <option value="{{ $status->value }}">{{ $status->value }}</option>
+                        <option value="{{ $status->value }}" @selected(old('module') === $status->value)>{{ $status->value }}</option>
                     @endforeach
                 </select>
             </div>
             
 
-            <button type="submit"
+            <button type="submit" @disabled($errors->isNotEmpty())
                 class="text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none w-full mb-3">
                 Create Role
             </button>

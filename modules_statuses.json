@@ -1,4 +1,5 @@
 {
     "SuperAdmin": true,
-    "Roles": true
+    "Roles": true,
+    "Permission": true
 }

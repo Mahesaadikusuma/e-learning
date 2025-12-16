@@ -7,29 +7,32 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Spatie\Permission\Models\Role;
 use Devrabiul\ToastMagic\Facades\ToastMagic;
+use Illuminate\Http\RedirectResponse;
+use Modules\Roles\Http\Requests\RoleStoreRequest;
+use Modules\Roles\Http\Requests\RoleUpdateRequest;
+use Modules\Roles\Services\RoleService;
 
 class RolesController extends Controller
 {
+    protected $roleService;
+    protected $perPage = 2;
+
+    public function __construct(RoleService $roleService)
+    {
+        $this->roleService = $roleService;
+    }
+
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
-        $search = $request->search;
 
+        $search = $request->search;
         $orderBy = in_array($request->orderBy, ['asc', 'desc'])
             ? $request->orderBy
             : 'desc';
-
-        $roles = Role::query()
-            ->when(
-                $search,
-                fn($q) =>
-                $q->where('name', 'like', "%{$search}%")
-            )
-            ->orderBy('id', $orderBy)
-            ->paginate(2)
-            ->withQueryString();
+        $roles =  $this->roleService->paginateFilteredRoles($search, $orderBy, $this->perPage);
         return view('roles::index', [
             'roles' => $roles
         ]);
@@ -38,20 +41,10 @@ class RolesController extends Controller
     public function search(Request $request)
     {
         $search = $request->search;
-
         $orderBy = in_array($request->orderBy, ['asc', 'desc'])
             ? $request->orderBy
             : 'desc';
-
-        $roles = Role::query()
-            ->when(
-                $search,
-                fn($q) =>
-                $q->where('name', 'like', "%{$search}%")
-            )
-            ->orderBy('id', $orderBy)
-            ->paginate(2)
-            ->withQueryString();
+        $roles =  $this->roleService->paginateFilteredRoles($search, $orderBy, $this->perPage);
 
         return view('roles::index', [
             'roles' => $roles,
@@ -69,14 +62,16 @@ class RolesController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(RoleStoreRequest $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|min:2|max:255|unique:roles,name',
-        ]);
-        $role = Role::create($validated);
-        ToastMagic::success("Role created successfully!");
-        return redirect()->route('roles.index')->with('success', 'Role created successfully');
+        try {
+            $validated = $request->validated();
+            $role = $this->roleService->createRole($validated);
+            return redirect()->route('roles.index')->with('success', 'Role created successfully');
+        } catch (\Exception $e) {
+            ToastMagic::error("Failed to create role: " . $e->getMessage());
+            throw $e;
+        }
     }
 
     /**
@@ -101,32 +96,32 @@ class RolesController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, $id)
+    public function update(RoleUpdateRequest $request, Role $role): RedirectResponse
     {
-        $role = Role::findOrFail($id);
-        $validated = $request->validate([
-            'name' => [
-                'required',
-                'string',
-                Rule::unique('roles')->ignore($id),
-            ]
-        ]);
+        try {
+            $validated = $request->validated();
 
-        $role->update($validated);
-        ToastMagic::success("Role {$role->name} updated successfully!");
-        return redirect()->route('roles.index')
-            ->with('success', "Role {$role->name} updated successfully!");
+            $this->roleService->updateRole($role, $validated);
+            return redirect()->route('roles.index')
+                ->with('success', "Role {$role->name} updated successfully!");
+        } catch (\Exception $e) {
+            ToastMagic::error("Failed to update role: " . $e->getMessage());
+            throw $e;
+        }
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy($id)
+    public function destroy(Role $role)
     {
-        $role = Role::findOrFail($id);
-        $role->delete();
-        ToastMagic::success("Role {$role->name} deleted successfully!");
-        return redirect()->route('roles.index')
-            ->with('success', "Role {$role->name} deleted successfully!");
+        try {
+            $this->roleService->deleteRole($role);
+            return redirect()->route('roles.index')
+                ->with('success', "Role {$role->name} deleted successfully!");
+        } catch (\Exception $e) {
+            ToastMagic::error("Failed to delete role: " . $e->getMessage());
+            throw $e;
+        }
     }
 }

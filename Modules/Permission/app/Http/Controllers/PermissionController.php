@@ -8,29 +8,29 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 use Spatie\Permission\Models\Permission;
 use Devrabiul\ToastMagic\Facades\ToastMagic;
+use Modules\Permission\Services\PermissionService;
 
 class PermissionController extends Controller
 {
+    protected $permissionService;
+    protected $perPage = 10;
+
+    public function __construct(PermissionService $permissionService)
+    {
+        $this->permissionService = $permissionService;
+    }
+
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
         $search = $request->search;
-
         $orderBy = in_array($request->orderBy, ['asc', 'desc'])
             ? $request->orderBy
             : 'desc';
 
-        $permissions = Permission::query()
-            ->when(
-                $search,
-                fn($q) =>
-                $q->where('name', 'like', "%{$search}%")
-            )
-            ->orderBy('id', $orderBy)
-            ->paginate(10)
-            ->withQueryString();
+        $permissions = $this->permissionService->paginateFilteredPermissions($search, $orderBy, $this->perPage);
         return view('permission::index', [
             'permissions' => $permissions
         ]);
@@ -39,21 +39,11 @@ class PermissionController extends Controller
     public function search(Request $request)
     {
         $search = $request->search;
-
         $orderBy = in_array($request->orderBy, ['asc', 'desc'])
             ? $request->orderBy
             : 'desc';
 
-        $permissions = Permission::query()
-            ->when(
-                $search,
-                fn($q) =>
-                $q->where('name', 'like', "%{$search}%")
-            )
-            ->orderBy('id', $orderBy)
-            ->paginate(10)
-            ->withQueryString();
-
+        $permissions = $this->permissionService->paginateFilteredPermissions($search, $orderBy, $this->perPage);
         return view('permission::index', [
             'permissions' => $permissions,
         ]);
@@ -72,20 +62,23 @@ class PermissionController extends Controller
      */
     public function store(Request $request)
     {
-        $validate = $request->validate([
-            'name' => [
-                'required',
-                Rule::unique('permissions')->where(function ($query) use ($request) {
-                    return $query->where('module', $request->module);
-                }),
-            ],
-            'module' => 'required',
-        ]);
+        try {
+            $validate = $request->validate([
+                'name' => [
+                    'required',
+                    Rule::unique('permissions')->where(function ($query) use ($request) {
+                        return $query->where('module', $request->module);
+                    }),
+                ],
+                'module' => 'required',
+            ]);
 
-        $permission = Permission::create($validate);
-        ToastMagic::success('Permission created successfully!');
-
-        return redirect()->route('permission.index')->with('success', 'Permission created successfully');
+            $permission = $this->permissionService->createPermission($validate);
+            return redirect()->route('permission.index')->with('success', 'Permission created successfully');
+        } catch (\Exception $e) {
+            ToastMagic::error("Failed to Create permission: " . $e->getMessage());
+            throw $e;
+        }
     }
 
     /**
@@ -110,40 +103,42 @@ class PermissionController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, Permission $permission)
     {
-        $permission = Permission::find($id);
-        $validated = $request->validate([
-            'name' => [
-                'required',
-                'string',
-                Rule::unique('permissions')
-                    ->ignore($permission->id)
-                    ->where(function ($query) use ($request) {
-                        return $query->where('module', $request->module);
-                    }),
-            ],
-            'module' => 'required',
-        ]);
-        $permission->update($validated);
-        ToastMagic::success("Permission {$permission->name} updated successfully!");
+        try {
+            $validated = $request->validate([
+                'name' => [
+                    'required',
+                    'string',
+                    Rule::unique('permissions')
+                        ->ignore($permission->id)
+                        ->where(function ($query) use ($request) {
+                            return $query->where('module', $request->module);
+                        }),
+                ],
+                'module' => 'required',
+            ]);
 
-        return redirect()->route('permission.index')
-            ->with('success', "Permission {$permission->name} updated successfully!");
+            $permission = $this->permissionService->updatePermission($permission, $validated);
+            return redirect()->route('permission.index')
+                ->with('success', "Permission {$permission->name} updated successfully!");
+        } catch (\Exception $e) {
+            ToastMagic::error("Failed to Update permission: " . $e->getMessage());
+            throw $e;
+        }
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy($id)
+    public function destroy(Permission $permission)
     {
         try {
-            $permission = Permission::find($id);
-            $permission->delete();
-            ToastMagic::success("Permission {$permission->name} deleted successfully!");
+            $this->permissionService->deletePermission($permission);
             return redirect()->route('permission.index')
                 ->with('success', "Permission {$permission->name} deleted successfully!");
         } catch (\Exception $e) {
+            ToastMagic::error("Failed to delete permission: " . $e->getMessage());
             Log::info($e->getMessage());
             throw $e;
         }

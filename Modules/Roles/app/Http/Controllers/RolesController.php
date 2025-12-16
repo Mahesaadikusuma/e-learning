@@ -6,17 +6,55 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Spatie\Permission\Models\Role;
+use Devrabiul\ToastMagic\Facades\ToastMagic;
 
 class RolesController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $roles = Role::query()->paginate(4);
+        $search = $request->search;
+
+        $orderBy = in_array($request->orderBy, ['asc', 'desc'])
+            ? $request->orderBy
+            : 'desc';
+
+        $roles = Role::query()
+            ->when(
+                $search,
+                fn($q) =>
+                $q->where('name', 'like', "%{$search}%")
+            )
+            ->orderBy('id', $orderBy)
+            ->paginate(2)
+            ->withQueryString();
         return view('roles::index', [
             'roles' => $roles
+        ]);
+    }
+
+    public function search(Request $request)
+    {
+        $search = $request->search;
+
+        $orderBy = in_array($request->orderBy, ['asc', 'desc'])
+            ? $request->orderBy
+            : 'desc';
+
+        $roles = Role::query()
+            ->when(
+                $search,
+                fn($q) =>
+                $q->where('name', 'like', "%{$search}%")
+            )
+            ->orderBy('id', $orderBy)
+            ->paginate(2)
+            ->withQueryString();
+
+        return view('roles::index', [
+            'roles' => $roles,
         ]);
     }
 
@@ -37,7 +75,7 @@ class RolesController extends Controller
             'name' => 'required|string|min:2|max:255|unique:roles,name',
         ]);
         $role = Role::create($validated);
-
+        ToastMagic::success("Role created successfully!");
         return redirect()->route('roles.index')->with('success', 'Role created successfully');
     }
 
@@ -74,9 +112,8 @@ class RolesController extends Controller
             ]
         ]);
 
-
         $role->update($validated);
-
+        ToastMagic::success("Role {$role->name} updated successfully!");
         return redirect()->route('roles.index')
             ->with('success', "Role {$role->name} updated successfully!");
     }
@@ -88,6 +125,7 @@ class RolesController extends Controller
     {
         $role = Role::findOrFail($id);
         $role->delete();
+        ToastMagic::success("Role {$role->name} deleted successfully!");
         return redirect()->route('roles.index')
             ->with('success', "Role {$role->name} deleted successfully!");
     }

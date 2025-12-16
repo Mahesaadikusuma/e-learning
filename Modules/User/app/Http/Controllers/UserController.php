@@ -8,15 +8,54 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
+use Devrabiul\ToastMagic\Facades\ToastMagic;
 
 class UserController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $users = User::with(['roles', 'permissions'])->paginate(10);
+        $search = $request->search;
+
+        $orderBy = in_array($request->orderBy, ['asc', 'desc'])
+            ? $request->orderBy
+            : 'desc';
+
+        $users = User::query()
+            ->when(
+                $search,
+                fn($q) =>
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+            )
+            ->orderBy('id', $orderBy)
+            ->paginate(10)
+            ->withQueryString();
+        return view('user::index', [
+            'users' => $users
+        ]);
+    }
+
+    public function search(Request $request)
+    {
+        $search = $request->search;
+
+        $orderBy = in_array($request->orderBy, ['asc', 'desc'])
+            ? $request->orderBy
+            : 'desc';
+
+        $users = User::query()
+            ->when(
+                $search,
+                fn($q) =>
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+            )
+            ->orderBy('id', $orderBy)
+            ->paginate(10)
+            ->withQueryString();
         return view('user::index', [
             'users' => $users
         ]);
@@ -71,7 +110,6 @@ class UserController extends Controller
             'permissions.*' => 'integer|exists:permissions,id',
         ]);
         $user = User::findOrFail($id);
-        // $user->update($validated);
         $role = Role::findOrFail($validated['role']);
         $user->syncRoles([$role->name]); // ✅ Spatie pakai name untuk syncRoles
 
@@ -84,7 +122,7 @@ class UserController extends Controller
             $user->syncPermissions([]);
         }
 
-
+        ToastMagic::success("User {$user->name} updated successfully!");
         return redirect()->route('user.index')
             ->with('success', "User {$user->name} updated successfully!");
     }

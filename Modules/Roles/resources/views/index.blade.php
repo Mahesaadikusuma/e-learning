@@ -6,8 +6,28 @@
         <a href="{{ route('roles.create') }}" class="text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none">
             Create Role
         </a>
-
         <x-flash-message class="my-2" />
+        
+        <form action="{{ route('roles.search') }}" method="GET" class="my-5">
+            <div class="flex shadow-xs rounded-base -space-x-0.5">
+                <label for="search-dropdown" class="mb-2 text-sm font-medium text-gray-900 sr-only dark:text-white">
+                    Search Role
+                </label>
+
+                <select id="order" name="orderBy" class="block w-full px-3 py-2.5 bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs placeholder:text-body">
+                    <option value="" selected>Pilih Order By</option>
+                    <option value="desc" @selected(request('orderBy')==='desc' )>Terbaru</option>
+                    <option value="asc" @selected(request('orderBy')==='asc' )>Terlama</option>
+                </select>
+
+                <input type="search" name="search" id="search-dropdown" id="input-group-1" class="px-3 py-2.5 bg-neutral-secondary-medium border border-default-medium text-heading text-sm focus:ring-brand focus:border-brand block w-full placeholder:text-body" placeholder="Search for products" >
+
+                <button type="submit" class="inline-flex items-center  text-white bg-brand hover:bg-brand-strong box-border border border-transparent focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-e-base text-sm px-4 py-2.5 focus:outline-none">
+                    <svg class="w-4 h-4 me-1.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="m21 21-3.5-3.5M17 10a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z"/></svg>
+                    Search
+                </button>
+            </div>
+        </form>
 
         <div class="relative overflow-x-auto bg-neutral-primary-soft shadow-xs rounded-base border border-default my-5">
             <table class="w-full text-sm text-left rtl:text-right text-body">
@@ -28,7 +48,7 @@
                     @forelse ($roles as $key => $role)
                         <tr class="bg-neutral-primary border-b border-default">
                             <td class="px-6 py-4 font-medium text-heading whitespace-nowrap">
-                                {{ $key + 1 }}
+                                {{ $key + $roles->firstItem() }}
                             </td>
                             <td class="px-6 py-4">
                                 {{ $role->name }}
@@ -50,7 +70,7 @@
                             </td>
                         </tr>
                     @empty
-                        <td colspan="2" class="px-6 py-4 text-center">
+                        <td colspan="3" class="px-6 py-4 text-center">
                             No Data
                         </td>
                     @endforelse

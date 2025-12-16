@@ -7,17 +7,55 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 use Spatie\Permission\Models\Permission;
+use Devrabiul\ToastMagic\Facades\ToastMagic;
 
 class PermissionController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $permissions = Permission::query()->paginate(10);
+        $search = $request->search;
+
+        $orderBy = in_array($request->orderBy, ['asc', 'desc'])
+            ? $request->orderBy
+            : 'desc';
+
+        $permissions = Permission::query()
+            ->when(
+                $search,
+                fn($q) =>
+                $q->where('name', 'like', "%{$search}%")
+            )
+            ->orderBy('id', $orderBy)
+            ->paginate(10)
+            ->withQueryString();
         return view('permission::index', [
             'permissions' => $permissions
+        ]);
+    }
+
+    public function search(Request $request)
+    {
+        $search = $request->search;
+
+        $orderBy = in_array($request->orderBy, ['asc', 'desc'])
+            ? $request->orderBy
+            : 'desc';
+
+        $permissions = Permission::query()
+            ->when(
+                $search,
+                fn($q) =>
+                $q->where('name', 'like', "%{$search}%")
+            )
+            ->orderBy('id', $orderBy)
+            ->paginate(10)
+            ->withQueryString();
+
+        return view('permission::index', [
+            'permissions' => $permissions,
         ]);
     }
 
@@ -45,6 +83,7 @@ class PermissionController extends Controller
         ]);
 
         $permission = Permission::create($validate);
+        ToastMagic::success('Permission created successfully!');
 
         return redirect()->route('permission.index')->with('success', 'Permission created successfully');
     }
@@ -87,6 +126,7 @@ class PermissionController extends Controller
             'module' => 'required',
         ]);
         $permission->update($validated);
+        ToastMagic::success("Permission {$permission->name} updated successfully!");
 
         return redirect()->route('permission.index')
             ->with('success', "Permission {$permission->name} updated successfully!");
@@ -100,6 +140,7 @@ class PermissionController extends Controller
         try {
             $permission = Permission::find($id);
             $permission->delete();
+            ToastMagic::success("Permission {$permission->name} deleted successfully!");
             return redirect()->route('permission.index')
                 ->with('success', "Permission {$permission->name} deleted successfully!");
         } catch (\Exception $e) {

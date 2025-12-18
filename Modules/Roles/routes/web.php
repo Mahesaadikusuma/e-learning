@@ -5,7 +5,4 @@ use Modules\Roles\Http\Controllers\RolesController;
 
 // Route::middleware(['auth', 'verified'])->group(function () {
 // });
-Route::get('roles/search', [RolesController::class, 'search'])
-    ->name('roles.search');
-
 Route::resource('roles', RolesController::class);

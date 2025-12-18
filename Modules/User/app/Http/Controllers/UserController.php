@@ -9,53 +9,29 @@ use Illuminate\Validation\Rule;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Devrabiul\ToastMagic\Facades\ToastMagic;
+use Modules\User\Http\Requests\UserUpdateRequest;
+use Modules\User\Services\UserService;
 
 class UserController extends Controller
 {
+    private UserService $userService;
+    public function __construct(UserService $userService)
+    {
+        $this->userService = $userService;
+    }
+
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
+        $limit = 2;
         $search = $request->search;
-
         $orderBy = in_array($request->orderBy, ['asc', 'desc'])
             ? $request->orderBy
             : 'desc';
 
-        $users = User::query()
-            ->when(
-                $search,
-                fn($q) =>
-                $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('email', 'like', "%{$search}%")
-            )
-            ->orderBy('id', $orderBy)
-            ->paginate(10)
-            ->withQueryString();
-        return view('user::index', [
-            'users' => $users
-        ]);
-    }
-
-    public function search(Request $request)
-    {
-        $search = $request->search;
-
-        $orderBy = in_array($request->orderBy, ['asc', 'desc'])
-            ? $request->orderBy
-            : 'desc';
-
-        $users = User::query()
-            ->when(
-                $search,
-                fn($q) =>
-                $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('email', 'like', "%{$search}%")
-            )
-            ->orderBy('id', $orderBy)
-            ->paginate(10)
-            ->withQueryString();
+        $users = $this->userService->paginateFilteredUsers($search, $orderBy, $limit);
         return view('user::index', [
             'users' => $users
         ]);
@@ -85,11 +61,10 @@ class UserController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit($id)
+    public function edit(User $user)
     {
-        $user = User::findOrFail($id);
-        $permissions = Permission::all();
-        $roles = Role::all();
+        $permissions = Permission::select('uuid', 'name', 'module')->get();
+        $roles = Role::select('uuid', 'name')->get();
         return view('user::edit', [
             'user' => $user,
             'permissions' => $permissions,
@@ -100,35 +75,30 @@ class UserController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, $id)
+    public function update(UserUpdateRequest $request, User $user)
     {
-        $validated = $request->validate([
-            'name' => ['required', 'string', Rule::unique('users', 'name')->ignore($id)],
-            'email' => ['required', 'email', Rule::unique('users', 'email')->ignore($id)],
-            'role' => 'required|exists:roles,id',
-            'permissions' => 'nullable|array',
-            'permissions.*' => 'integer|exists:permissions,id',
-        ]);
-        $user = User::findOrFail($id);
-        $role = Role::findOrFail($validated['role']);
-        $user->syncRoles([$role->name]); // ✅ Spatie pakai name untuk syncRoles
+        try {
+            $validated = $request->validated();
+            $user = $this->userService->updateUser($user, $validated);
 
-        // Sync direct permissions
-        if (isset($validated['permissions'])) {
-            // Ambil nama permission berdasarkan ID
-            $permissionNames = Permission::whereIn('id', $validated['permissions'])->pluck('name')->toArray();
-            $user->syncPermissions($permissionNames);
-        } else {
-            $user->syncPermissions([]);
+            return redirect()->route('user.index')
+                ->with('success', "User {$user->name} updated successfully!");
+        } catch (\Exception $e) {
+            ToastMagic::error("Failed to update user: " . $e->getMessage());
+            throw $e;
         }
-
-        ToastMagic::success("User {$user->name} updated successfully!");
-        return redirect()->route('user.index')
-            ->with('success', "User {$user->name} updated successfully!");
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy($id) {}
+    public function destroy(User $user)
+    {
+        try {
+            $this->userService->deleteUser($user);
+        } catch (\Exception $e) {
+            ToastMagic::error("Failed to delete user: " . $e->getMessage());
+            throw $e;
+        }
+    }
 }

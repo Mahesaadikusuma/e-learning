@@ -3,6 +3,7 @@
 namespace Modules\Permission\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class PermissionStoreRequest extends FormRequest
 {
@@ -11,7 +12,19 @@ class PermissionStoreRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [];
+        return [
+            'name' => [
+                'required',
+                'string',
+                Rule::unique('permissions')->where(function ($query) {
+                    return $query->where('module', $this->module);
+                }),
+            ],
+            'module' => [
+                'required',
+                'string',
+            ],
+        ];
     }
 
     /**

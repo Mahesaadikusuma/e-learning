@@ -2,7 +2,7 @@
 
 namespace Modules\Roles\Services;
 
-use Spatie\Permission\Models\Role;
+use Modules\Roles\Models\Role;
 use Symfony\Component\HttpFoundation\Request;
 use Devrabiul\ToastMagic\Facades\ToastMagic;
 
@@ -12,9 +12,9 @@ class RoleService
     {
         return Role::query()
             ->when($search, function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%");
+                $q->search($search);
             })
-            ->orderBy('id', $sortBy);
+            ->orderBy('created_at', $sortBy);
     }
 
 

@@ -1,11 +1,10 @@
 <x-layouts.app title="Users">
     <div class="w-full max-w-5xl mx-auto">
         <h1 class="" style="color: red;">Hello World</h1>
-        <p class="text-blue-500 my-2">Module: {!! config('user.name') !!}</p>
-        
+        <p class="text-blue-500 my-2">Module: {!! config('roles.name') !!}</p>
         <x-flash-message class="my-2" />
-
-        <form action="{{ route('users.search') }}" method="GET" class="my-5">
+        
+        <form action="{{ route('user.index') }}" method="GET" class="my-5">
             <div class="flex shadow-xs rounded-base -space-x-0.5">
                 <label for="search-dropdown" class="mb-2 text-sm font-medium text-gray-900 sr-only dark:text-white">
                     Search Role
@@ -17,7 +16,7 @@
                     <option value="asc" @selected(request('orderBy')==='asc' )>Terlama</option>
                 </select>
 
-                <input type="search" name="search" id="search-dropdown" id="input-group-1" class="px-3 py-2.5 bg-neutral-secondary-medium border border-default-medium text-heading text-sm focus:ring-brand focus:border-brand block w-full placeholder:text-body" placeholder="Search for Users" >
+                <input type="search" name="search" id="search-dropdown" id="input-group-1" class="px-3 py-2.5 bg-neutral-secondary-medium border border-default-medium text-heading text-sm focus:ring-brand focus:border-brand block w-full placeholder:text-body" placeholder="Search for products" >
 
                 <button type="submit" class="inline-flex items-center  text-white bg-brand hover:bg-brand-strong box-border border border-transparent focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-e-base text-sm px-4 py-2.5 focus:outline-none">
                     <svg class="w-4 h-4 me-1.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="m21 21-3.5-3.5M17 10a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z"/></svg>
@@ -42,7 +41,7 @@
                     @forelse ($users as $key => $user)
                         <tr class="bg-neutral-primary border-b border-default">
                             <td class="px-6 py-4 font-medium text-heading whitespace-nowrap">
-                                {{ $key + 1 }}
+                                {{ $key + $users->firstItem() }}
                             </td>
                             <td class="px-6 py-4">
                                 {{ $user->name }}
@@ -56,6 +55,7 @@
                             <td class="px-6 py-4">
                                 {{ $user->getPermissionNames()->implode(', ') ?? 'N/A'  }}
                             </td>
+
                             <td class="px-6 py-4">
                                 <div class="flex items-center gap-2">
                                     <a href="{{ route('user.edit', $user->id) }}" class="text-blue-600">
@@ -63,24 +63,22 @@
                                     </a>
                                     <x-modal-delete 
                                         :id="$user->id"
-                                        message="Are you sure delete permission"
+                                        message="Are you sure delete user"
                                         :item-name="$user->name"
                                         :route="route('user.destroy', $user->id)"
                                     />
                                 </div>
                             </td>
-                        </tr>        
-                    @empty
-                        <tr>
-                            <td colspan="4" class="px-6 py-4 text-center">
-                                No Data
-                            </td>
                         </tr>
+                    @empty
+                        <td colspan="3" class="px-6 py-4 text-center">
+                            No Data
+                        </td>
                     @endforelse
                 </tbody>
             </table>
+
         </div>
-        
         <div class="">
             {{ $users->links() }}
         </div>

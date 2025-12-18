@@ -8,7 +8,7 @@
         </a>
         <x-flash-message class="my-2" />
         
-        <form action="{{ route('roles.search') }}" method="GET" class="my-5">
+        <form action="{{ route('roles.index') }}" method="GET" class="my-5">
             <div class="flex shadow-xs rounded-base -space-x-0.5">
                 <label for="search-dropdown" class="mb-2 text-sm font-medium text-gray-900 sr-only dark:text-white">
                     Search Role
@@ -56,16 +56,15 @@
 
                             <td class="px-6 py-4">
                                 <div class="flex items-center gap-2">
-                                    <a href="{{ route('roles.edit', $role->id) }}" class="text-blue-600">
+                                    <a href="{{ route('roles.edit', $role->uuid) }}" class="text-blue-600">
                                         Edit
                                     </a>
                                     <x-modal-delete 
-                                        :id="$role->id"
+                                        :id="$role->uuid"
                                         message="Are you sure delete role"
                                         :item-name="$role->name"
-                                        :route="route('roles.destroy', $role->id)"
+                                        :route="route('roles.destroy', $role->uuid)"
                                     />
-                                    </form>
                                 </div>
                             </td>
                         </tr>

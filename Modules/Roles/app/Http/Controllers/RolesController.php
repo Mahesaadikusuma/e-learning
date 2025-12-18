@@ -4,12 +4,11 @@ namespace Modules\Roles\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
-use Spatie\Permission\Models\Role;
 use Devrabiul\ToastMagic\Facades\ToastMagic;
 use Illuminate\Http\RedirectResponse;
 use Modules\Roles\Http\Requests\RoleStoreRequest;
 use Modules\Roles\Http\Requests\RoleUpdateRequest;
+use Modules\Roles\Models\Role;
 use Modules\Roles\Services\RoleService;
 
 class RolesController extends Controller
@@ -35,19 +34,6 @@ class RolesController extends Controller
         $roles =  $this->roleService->paginateFilteredRoles($search, $orderBy, $this->perPage);
         return view('roles::index', [
             'roles' => $roles
-        ]);
-    }
-
-    public function search(Request $request)
-    {
-        $search = $request->search;
-        $orderBy = in_array($request->orderBy, ['asc', 'desc'])
-            ? $request->orderBy
-            : 'desc';
-        $roles =  $this->roleService->paginateFilteredRoles($search, $orderBy, $this->perPage);
-
-        return view('roles::index', [
-            'roles' => $roles,
         ]);
     }
 

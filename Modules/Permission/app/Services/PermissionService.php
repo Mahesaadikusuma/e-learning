@@ -2,8 +2,8 @@
 
 namespace Modules\Permission\Services;
 
-use Spatie\Permission\Models\Permission;
 use Devrabiul\ToastMagic\Facades\ToastMagic;
+use Modules\Permission\Models\Permission;
 
 class PermissionService
 {
@@ -11,9 +11,9 @@ class PermissionService
     {
         return Permission::query()
             ->when($search, function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%");
+                $q->search($search);
             })
-            ->orderBy('id', $sortBy);
+            ->orderBy('created_at', $sortBy);
     }
 
 

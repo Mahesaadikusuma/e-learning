@@ -28,7 +28,7 @@
                     <option value="" selected>Select an option Role User</option>
                     @foreach ($roles as $role)
                     {{-- {{ $permission->module === $status->value ? 'selected' : '' }} --}}
-                        <option value="{{ $role->id }}"@selected(old('role', $user->roles->first()?->id) == $role->id)>
+                        <option value="{{ $role->uuid }}"@selected(old('role', $user->roles->first()?->uuid) == $role->uuid)>
                             {{ $role->name }}
                         </option>
                     @endforeach
@@ -40,15 +40,15 @@
                     @foreach ($permissions as $permission)
                     <div class="flex items-center p-2 hover:bg-neutral-tertiary rounded cursor-pointer">
                         <input 
-                            id="permission-{{ $permission->id }}" 
+                            id="permission-{{ $permission->uuid }}" 
                             type="checkbox" 
                             name="permissions[]" 
-                            value="{{ $permission->id }}"
-                            @checked(in_array($permission->id, old('permissions', $user->permissions->pluck('id')->toArray())))
+                            value="{{ $permission->uuid }}"
+                            @checked(in_array($permission->uuid, old('permissions', $user->permissions->pluck('uuid')->toArray())))
                             class="w-4 h-4 border border-default-medium rounded-xs bg-neutral-secondary-medium focus:ring-2 focus:ring-brand"
                         />
                         <label 
-                            for="permission-{{ $permission->id }}" 
+                            for="permission-{{ $permission->uuid }}" 
                             class="select-none ms-2 text-sm font-medium text-body cursor-pointer"
                         >
                             {{ $permission->name }}

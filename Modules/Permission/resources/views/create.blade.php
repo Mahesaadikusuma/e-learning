@@ -16,7 +16,7 @@
                     placeholder=""  />
             </div>
             <div class="mb-4">
-                <label for="module" class="block mb-2.5 text-sm font-medium text-heading">Name Permission</label>
+                <label for="module" class="block mb-2.5 text-sm font-medium text-heading">Stack Holder</label>
                 <select id="module" name="module" class="block w-full px-3 py-2.5 bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs placeholder:text-body">
                     <option value="" selected>Select an option Module Permission</option>
                     @foreach (\Modules\Permission\Enums\ModuleStatus::cases() as $status)
@@ -26,7 +26,7 @@
             </div>
             
 
-            <button type="submit" @disabled($errors->isNotEmpty())
+            <button type="submit" 
                 class="text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none w-full mb-3">
                 Create Role
             </button>

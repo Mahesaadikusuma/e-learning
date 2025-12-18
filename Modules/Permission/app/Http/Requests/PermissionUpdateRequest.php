@@ -3,6 +3,7 @@
 namespace Modules\Permission\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class PermissionUpdateRequest extends FormRequest
 {
@@ -11,7 +12,21 @@ class PermissionUpdateRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [];
+        return [
+            'name' => [
+                'required',
+                'string',
+                Rule::unique('permissions')
+                    ->ignore($this->route('permission')->id)
+                    ->where(function ($query) {
+                        return $query->where('module', $this->module);
+                    }),
+            ],
+            'module' => [
+                'required',
+                'string',
+            ],
+        ];
     }
 
     /**

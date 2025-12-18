@@ -6,8 +6,10 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
-use Spatie\Permission\Models\Permission;
 use Devrabiul\ToastMagic\Facades\ToastMagic;
+use Modules\Permission\Http\Requests\PermissionStoreRequest;
+use Modules\Permission\Http\Requests\PermissionUpdateRequest;
+use Modules\Permission\Models\Permission;
 use Modules\Permission\Services\PermissionService;
 
 class PermissionController extends Controller
@@ -36,19 +38,6 @@ class PermissionController extends Controller
         ]);
     }
 
-    public function search(Request $request)
-    {
-        $search = $request->search;
-        $orderBy = in_array($request->orderBy, ['asc', 'desc'])
-            ? $request->orderBy
-            : 'desc';
-
-        $permissions = $this->permissionService->paginateFilteredPermissions($search, $orderBy, $this->perPage);
-        return view('permission::index', [
-            'permissions' => $permissions,
-        ]);
-    }
-
     /**
      * Show the form for creating a new resource.
      */
@@ -60,19 +49,10 @@ class PermissionController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(PermissionStoreRequest $request)
     {
         try {
-            $validate = $request->validate([
-                'name' => [
-                    'required',
-                    Rule::unique('permissions')->where(function ($query) use ($request) {
-                        return $query->where('module', $request->module);
-                    }),
-                ],
-                'module' => 'required',
-            ]);
-
+            $validate = $request->validated();
             $permission = $this->permissionService->createPermission($validate);
             return redirect()->route('permission.index')->with('success', 'Permission created successfully');
         } catch (\Exception $e) {
@@ -103,22 +83,10 @@ class PermissionController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Permission $permission)
+    public function update(PermissionUpdateRequest $request, Permission $permission)
     {
         try {
-            $validated = $request->validate([
-                'name' => [
-                    'required',
-                    'string',
-                    Rule::unique('permissions')
-                        ->ignore($permission->id)
-                        ->where(function ($query) use ($request) {
-                            return $query->where('module', $request->module);
-                        }),
-                ],
-                'module' => 'required',
-            ]);
-
+            $validated = $request->validated();
             $permission = $this->permissionService->updatePermission($permission, $validated);
             return redirect()->route('permission.index')
                 ->with('success', "Permission {$permission->name} updated successfully!");

@@ -8,7 +8,7 @@
         </a>
         <x-flash-message class="my-2" />
 
-        <form action="{{ route('permission.search') }}" method="GET" class="my-5">
+        <form action="{{ route('permission.index') }}" method="GET" class="my-5">
             <div class="flex shadow-xs rounded-base -space-x-0.5">
                 <label for="search-dropdown" class="mb-2 text-sm font-medium text-gray-900 sr-only dark:text-white">
                     Search Permission
@@ -52,14 +52,14 @@
                             </td>
                             <td class="px-6 py-4">
                                 <div class="flex items-center gap-2">
-                                    <a href="{{ route('permission.edit', $permission->id) }}" class="text-blue-600">
+                                    <a href="{{ route('permission.edit', $permission->uuid) }}" class="text-blue-600">
                                         Edit
                                     </a>
                                     <x-modal-delete 
-                                        :id="$permission->id"
+                                        :id="$permission->uuid"
                                         message="Are you sure delete permission"
                                         :item-name="$permission->name"
-                                        :route="route('permission.destroy', $permission->id)"
+                                        :route="route('permission.destroy', $permission->uuid)"
                                     />
                                 </div>
                             </td>

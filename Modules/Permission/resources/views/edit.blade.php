@@ -6,7 +6,7 @@
     </div>
     
     <div class="w-full max-w-md bg-neutral-primary-soft p-6 border border-default rounded-base shadow-xs">
-        <form action="{{ route('permission.update', $permission->id) }}" method="POST">
+        <form action="{{ route('permission.update', $permission->uuid) }}" method="POST">
             @method('PUT')
             @csrf
             <h5 class="text-xl font-semibold text-heading mb-6">Update Permission User</h5>

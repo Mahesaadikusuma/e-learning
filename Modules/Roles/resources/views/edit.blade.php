@@ -6,7 +6,7 @@
     </div>
     
     <div class="w-full max-w-md bg-neutral-primary-soft p-6 border border-default rounded-base shadow-xs">
-        <form action="{{ route('roles.update', $role->id) }}" method="POST">
+        <form action="{{ route('roles.update', $role->uuid) }}" method="POST">
             @method('PUT')
             @csrf
             <h5 class="text-xl font-semibold text-heading mb-6">Edit Role {{ $role->name }}</h5>

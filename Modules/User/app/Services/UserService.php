@@ -27,29 +27,26 @@ class UserService
     public function updateUser(User $user, array $data): User
     {
         return DB::transaction(function () use ($user, $data) {
-
-            // Update basic data
             $user->update([
                 'name'  => $data['name'],
                 'email' => $data['email'],
             ]);
 
-            // Update role (Spatie pakai name)
+            if (!empty($data['password'])) {
+                $user->update(['password' => bcrypt($data['password'])]);
+            }
+
             $role = Role::where('uuid', $data['role'])->firstOrFail();
             $user->syncRoles([$role->name]);
 
-            // Update permissions (direct permission)
-            if (!empty($data['permissions'])) {
-                $permissionNames = Permission::whereIn('uuid', $data['permissions'])
-                    ->pluck('name')
-                    ->toArray();
+            $permissionNames = Permission::whereIn('uuid', $data['permissions'] ?? [])
+                ->pluck('name')
+                ->toArray();
 
-                $user->syncPermissions($permissionNames);
-            } else {
-                $user->syncPermissions([]);
-            }
+            $user->syncPermissions($permissionNames);
 
             ToastMagic::success("User {$user->name} updated successfully!");
+
             return $user;
         });
     }
